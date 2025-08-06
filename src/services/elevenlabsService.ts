@@ -23,10 +23,10 @@ class ElevenLabsService {
         },
         body: JSON.stringify({
           text: text,
-          model_id: 'eleven_monolingual_v1',
+          model_id: 'eleven_multilingual_v2',
           voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
+            stability: 0.3,
+            speed: 0.7
           }
         })
       });
@@ -206,12 +206,7 @@ class ElevenLabsService {
 
 
 
-  async generateScamCallAudio(victimName: string, victimDescription: string, geminiApiKey?: string, callerData?: any, customVoiceId?: string): Promise<{ audioBuffer: ArrayBuffer; script: string }> {
-    if (!this.apiKey) {
-      throw new Error('ElevenLabs API key not provided. Please enter your API key.');
-    }
-
-        // Generate scam script using Gemini
+  async generateScamCallScript(victimName: string, victimDescription: string, geminiApiKey?: string, callerData?: any): Promise<string> {
     if (!geminiApiKey) {
       throw new Error('Gemini API key is required for scam call script generation. Please provide your Gemini API key.');
     }
@@ -219,12 +214,19 @@ class ElevenLabsService {
     geminiService.initialize(geminiApiKey);
     const scamScript = await geminiService.generateCallScript({ name: victimName, description: victimDescription }, callerData);
     console.log('Generated scam script using Gemini:', scamScript);
-      
-      console.log('Final scam script for audio generation:', scamScript);
+    
+    return scamScript;
+  }
 
+  async generateScamCallAudio(script: string, customVoiceId?: string): Promise<ArrayBuffer> {
+    if (!this.apiKey) {
+      throw new Error('ElevenLabs API key not provided. Please enter your API key.');
+    }
+
+    console.log('Sending scam script to ElevenLabs:', script);
+    console.log('Using voice ID:', customVoiceId || '21m00Tcm4TlvDq8ikWAM');
+    
     try {
-      console.log('Sending scam script to ElevenLabs:', scamScript);
-      console.log('Using voice ID:', customVoiceId || '21m00Tcm4TlvDq8ikWAM');
       const response = await fetch(`${this.baseURL}/text-to-speech/${customVoiceId || '21m00Tcm4TlvDq8ikWAM'}`, {
         method: 'POST',
         headers: {
@@ -233,7 +235,7 @@ class ElevenLabsService {
           'xi-api-key': this.apiKey
         },
         body: JSON.stringify({
-          text: scamScript,
+          text: script,
           model_id: 'eleven_monolingual_v1',
           voice_settings: {
             stability: 0.5,
@@ -248,7 +250,7 @@ class ElevenLabsService {
       }
 
       const audioBuffer = await response.arrayBuffer();
-      return { audioBuffer, script: scamScript };
+      return audioBuffer;
     } catch (error) {
       console.error('Error generating scam call audio:', error);
       if (error instanceof Error) {

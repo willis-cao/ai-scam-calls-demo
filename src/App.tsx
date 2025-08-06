@@ -110,10 +110,6 @@ const App: React.FC = () => {
   };
 
   const generateScamCall = async () => {
-    if (!apiKey) {
-      setError('ElevenLabs API key not found. Please add REACT_APP_ELEVENLABS_API_KEY to your .env.local file.');
-      return;
-    }
     if (!geminiApiKey) {
       setError('Google Gemini API key is required for scam call script generation. Please add REACT_APP_GEMINI_API_KEY to your .env.local file.');
       return;
@@ -129,35 +125,16 @@ const App: React.FC = () => {
     setGeneratedScript('');
 
     try {
-      // Initialize the ElevenLabs service
-      elevenLabsService.initialize(apiKey);
-      
-      // Determine which voice ID to use based on selection
-      let voiceIdToUse = '';
-      if (selectedVoiceType === 'eric') {
-        voiceIdToUse = 'cjVigY5qzO86Huf0OWal';
-      } else if (selectedVoiceType === 'jessica') {
-        voiceIdToUse = 'cgSgspJ2msm6clMCkdW9';
-      } else if (selectedVoiceType === 'custom') {
-        voiceIdToUse = customVoiceId;
-      }
-
-      // Generate scam call script and audio
-      const { audioBuffer, script } = await elevenLabsService.generateScamCallAudio(
+      // Generate scam call script using Gemini only
+      const script = await elevenLabsService.generateScamCallScript(
         victimData.name, 
         victimData.description, 
         geminiApiKey,
-        callerData,
-        voiceIdToUse
+        callerData
       );
       
-      // Create audio blob and URL
-      const audioBlob = elevenLabsService.createAudioBlob(audioBuffer);
-      const audioURL = elevenLabsService.createAudioURL(audioBlob);
-      
-      setScamCallAudioURL(audioURL);
       setGeneratedScript(script);
-      setSuccess('Scam call script generated successfully! You can now play the audio.');
+      setSuccess('Scam call script generated successfully! You can now generate and play the audio.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate scam call script. Please check your API key.');
     } finally {
@@ -200,16 +177,30 @@ const App: React.FC = () => {
       const audioBlob = elevenLabsService.createAudioBlob(audioBuffer);
       const audioURL = elevenLabsService.createAudioURL(audioBlob);
       
+      console.log('Setting demo audio URL:', audioURL);
       setDemoAudioURL(audioURL);
       setSuccess('Voice preview generated successfully!');
       
-      // Auto-play the preview
-      if (demoAudioRef.current) {
-        demoAudioRef.current.play();
-        demoAudioRef.current.onended = () => {
-          setIsPlayingDemo(false);
-        };
-      }
+      // Auto-play the preview with a small delay to ensure the audio element is ready
+      setTimeout(() => {
+        if (demoAudioRef.current) {
+          demoAudioRef.current.play().catch((error) => {
+            console.error('Error playing audio:', error);
+            setError('Failed to play audio preview. Please try again.');
+          });
+          demoAudioRef.current.onended = () => {
+            setIsPlayingDemo(false);
+          };
+          demoAudioRef.current.onerror = () => {
+            console.error('Audio playback error');
+            setError('Audio playback failed. Please try again.');
+            setIsPlayingDemo(false);
+          };
+        } else {
+          console.error('Audio element not found');
+          setError('Audio element not available. Please try again.');
+        }
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate voice preview. Please check your API key.');
     } finally {
@@ -217,15 +208,78 @@ const App: React.FC = () => {
     }
   };
 
-  const playScamCallAudio = () => {
-    if (scamCallAudioURL && scamCallAudioRef.current) {
-      setIsPlayingScamCall(true);
-      scamCallAudioRef.current.play();
-      
-      scamCallAudioRef.current.onended = () => {
-        setIsPlayingScamCall(false);
-      };
+  const generateAndPlayScamCallAudio = async () => {
+    if (!apiKey) {
+      setError('ElevenLabs API key not found. Please add REACT_APP_ELEVENLABS_API_KEY to your .env.local file.');
+      return;
     }
+    if (!generatedScript) {
+      setError('Please generate a scam call script first');
+      return;
+    }
+
+    setIsPlayingScamCall(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Initialize the ElevenLabs service
+      elevenLabsService.initialize(apiKey);
+      
+      // Determine which voice ID to use based on selection
+      let voiceIdToUse = '';
+      if (selectedVoiceType === 'eric') {
+        voiceIdToUse = 'cjVigY5qzO86Huf0OWal';
+      } else if (selectedVoiceType === 'jessica') {
+        voiceIdToUse = 'cgSgspJ2msm6clMCkdW9';
+      } else if (selectedVoiceType === 'custom') {
+        voiceIdToUse = customVoiceId;
+        if (!customVoiceId) {
+          setError('Please generate a custom voice first');
+          return;
+        }
+      }
+
+      // Generate audio from the script
+      const audioBuffer = await elevenLabsService.generateScamCallAudio(generatedScript, voiceIdToUse);
+      
+      // Create audio blob and URL
+      const audioBlob = elevenLabsService.createAudioBlob(audioBuffer);
+      const audioURL = elevenLabsService.createAudioURL(audioBlob);
+      
+      setScamCallAudioURL(audioURL);
+      setSuccess('Audio generated successfully! Playing now...');
+      
+      // Auto-play the audio with a small delay to ensure the audio element is ready
+      setTimeout(() => {
+        if (scamCallAudioRef.current) {
+          scamCallAudioRef.current.play().catch((error) => {
+            console.error('Error playing audio:', error);
+            setError('Failed to play audio. Please try again.');
+          });
+          scamCallAudioRef.current.onended = () => {
+            setIsPlayingScamCall(false);
+          };
+          scamCallAudioRef.current.onerror = () => {
+            console.error('Audio playback error');
+            setError('Audio playback failed. Please try again.');
+            setIsPlayingScamCall(false);
+          };
+        } else {
+          console.error('Audio element not found');
+          setError('Audio element not available. Please try again.');
+        }
+      }, 100);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate and play audio. Please check your API key.');
+    } finally {
+      setIsPlayingScamCall(false);
+    }
+  };
+
+  // Helper function to strip ElevenLabs pause syntax from script display
+  const stripPauseSyntax = (script: string): string => {
+    return script.replace(/<break time="[^"]*" \/>/g, '');
   };
 
   return (
@@ -412,20 +466,16 @@ const App: React.FC = () => {
               >
                 {isPlayingDemo ? 'Generating Preview...' : 'Generate Voice Preview'}
               </button>
-              {demoAudioURL && (
-                <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                  Audio URL available: {demoAudioURL.substring(0, 50)}...
-                </div>
-              )}
+
             </div>
           </div>
         </div>
 
         {voiceDescription && (
-          <div className="debug-section">
-            <h3>Debug: Voice Description Generated by Gemini</h3>
-            <div className="debug-content">
-              <p><strong>Description fed into ElevenLabs:</strong></p>
+          <div className="voice-description-section">
+            <h3>Generated Voice Description</h3>
+            <div className="voice-description-content">
+              <p><strong>AI-Generated Voice Description:</strong></p>
               <div className="voice-description-box">
                 {typeof voiceDescription === 'string' ? voiceDescription : JSON.stringify(voiceDescription, null, 2)}
               </div>
@@ -444,17 +494,17 @@ const App: React.FC = () => {
           <div className="button-group">
             <button 
               onClick={generateScamCall}
-              disabled={isGeneratingScamCall || !apiKey || !geminiApiKey || !victimData.name || (selectedVoiceType === 'custom' && !customVoiceId)}
+              disabled={isGeneratingScamCall || !geminiApiKey || !victimData.name}
               className="scam-generate-button"
             >
               {isGeneratingScamCall ? 'Generating Scam Call...' : 'Generate Scam Call Script'}
             </button>
             <button 
-              onClick={playScamCallAudio}
-              disabled={isPlayingScamCall || !scamCallAudioURL}
+              onClick={generateAndPlayScamCallAudio}
+              disabled={isPlayingScamCall || !generatedScript || !apiKey || (selectedVoiceType === 'custom' && !customVoiceId)}
               className="scam-play-button"
             >
-              {isPlayingScamCall ? 'Playing Scam Call...' : 'Play Scam Call Audio'}
+              {isPlayingScamCall ? 'Generating and Playing...' : 'Generate and Play Audio'}
             </button>
           </div>
           
@@ -464,7 +514,7 @@ const App: React.FC = () => {
               <div className="script-content">
                 <p><strong>Script:</strong></p>
                 <div className="script-text">
-                  {generatedScript}
+                  {stripPauseSyntax(generatedScript)}
                 </div>
               </div>
             </div>
@@ -504,7 +554,14 @@ const App: React.FC = () => {
       
       {/* Hidden audio elements for playback */}
       {demoAudioURL && (
-        <audio ref={demoAudioRef} src={demoAudioURL} preload="auto" />
+        <audio 
+          ref={demoAudioRef} 
+          src={demoAudioURL} 
+          preload="auto"
+          onLoadStart={() => console.log('Audio loading started')}
+          onCanPlay={() => console.log('Audio can play')}
+          onError={(e) => console.error('Audio error:', e)}
+        />
       )}
       {scamCallAudioURL && (
         <audio ref={scamCallAudioRef} src={scamCallAudioURL} preload="auto" />

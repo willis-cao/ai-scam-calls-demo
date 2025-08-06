@@ -28,11 +28,12 @@ Custom Prompt: ${callerData?.customPrompt || 'None provided'}
 Generate the beginning of arealistic scam call script that would be used to target this person. The script should be:
 - 3-5 sentences long
 - Personalized to the available victim and caller information
-- Add pauses between sentences using the syntax '<break time="0.5s" />', replacing the 0.5s with a time between 0.25-0.75s
-- Add pauses where natural mid-sentence pauses would occur using the syntax '—'
+- Use natural language features such as "Um..." and "Uh, " generously, especially to slow down the pace of the script in cases where it would be likely the caller is reading information from a screen (such as when reading the victim's name)
+- Add pauses between sentences using the syntax '<break time="0.5s" />', replacing the 0.5s with a time between 0.1-0.4s
 - May include emotional appeals, urgency, and pressure tactics when appropriate for the specific scenario
 - Use the custom prompt as inspiration if provided, otherwise create a realistic scenario based on common scam tactics (family emergency, IRS, tech support, bank fraud, etc.)
 - Make up any missing details
+- Importantly, make sure to end the call by asking for some kind of sensitive information from the victim that is relevant to the scenario
 
 Return only the script text, no additional commentary.
 `;
@@ -56,28 +57,20 @@ Return only the script text, no additional commentary.
     }
 
     const prompt = `
-Generate a voice description for ElevenLabs voice creation. Based on the caller profile, generate a detailed physical and vocal description.
-
 Caller Name: ${callerData?.name || 'Unknown'}
 Caller Role: ${callerData?.relationship || 'Unknown'}
 Caller Organization: ${callerData?.organization || 'Unknown'}
 Custom Prompt: ${callerData?.customPrompt || 'None provided'}
 Custom Voice Description: ${customVoiceDescription || 'None provided'}
 
-Generate a detailed voice description that includes:
-- Age range and gender
-- Vocal characteristics (tone, pitch, accent, speaking style)
-- Country of origin, assumed from the caller's name and possibly organization
+Based on the above information, generate a detailed voice description that includes:
+- Age and gender
+- Tone, pitch, accent, and speaking style
 - Personality traits that would affect speech
 - Professional context that influences voice
-- Any specific vocal qualities based on the role and organization
 
-The description should be 2-4 sentences and suitable for voice synthesis.
-Focus on vocal characteristics that would make the voice sound realistic and appropriate for the role.
+The description should be 2-4 sentences.
 Remove all identifying information (names, organizations).
-Lead with the phrase "A fictional character".
-
-If a custom voice description is provided, incorporate those details into the generated description.
 
 Return only the voice description, no additional commentary.
 `;

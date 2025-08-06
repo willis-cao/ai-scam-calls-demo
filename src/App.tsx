@@ -340,33 +340,20 @@ const App: React.FC = () => {
       <header className="App-header">
         <h1>AI Scam Calls Demo</h1>
         <p>Demonstrating the potential dangers of AI-generated voice calls</p>
+        <a 
+          href="https://github.com/willis-cao/ai-scam-calls-demo" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="github-button"
+        >
+          View on GitHub
+        </a>
         <div className="warning-banner">
           ⚠️ This is a demonstration tool. AI-generated scam calls are a real threat.
         </div>
       </header>
       
       <main className="App-main">
-        <div className="api-key-section">
-          <h2>API Configuration</h2>
-          <div className="api-status">
-            <div className="status-item">
-              <span className="status-label">ElevenLabs API:</span>
-              <span className={`status-indicator ${apiKey ? 'connected' : 'missing'}`}>
-                {apiKey ? '✓ Connected' : '✗ Missing'}
-              </span>
-            </div>
-            <div className="status-item">
-              <span className="status-label">Google Gemini API:</span>
-              <span className={`status-indicator ${geminiApiKey ? 'connected' : 'optional'}`}>
-                {geminiApiKey ? '✓ Connected' : '○ Optional'}
-              </span>
-            </div>
-          </div>
-          <p className="api-note">
-            API keys are loaded from environment variables. See <a href="https://github.com/your-repo/ai-scam-calls-demo#getting-started" target="_blank" rel="noopener noreferrer">README</a> for setup instructions.
-          </p>
-        </div>
-
         <div className="victim-section">
           <h2>Victim Profile</h2>
           <div className="input-group">
@@ -604,8 +591,29 @@ const App: React.FC = () => {
           </div>
         </div>
 
+        <div className="api-key-section">
+          <h2>API Configuration</h2>
+          <div className="api-status">
+            <div className="status-item">
+              <span className="status-label">ElevenLabs API:</span>
+              <span className={`status-indicator ${apiKey ? 'connected' : 'missing'}`}>
+                {apiKey ? '✓ Connected' : '✗ Missing'}
+              </span>
+            </div>
+            <div className="status-item">
+              <span className="status-label">Google Gemini API:</span>
+              <span className={`status-indicator ${geminiApiKey ? 'connected' : 'optional'}`}>
+                {geminiApiKey ? '✓ Connected' : '○ Optional'}
+              </span>
+            </div>
+          </div>
+          <p className="api-note">
+            API keys are loaded from environment variables. See <a href="https://github.com/willis-cao/ai-scam-calls-demo/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> for setup instructions.
+          </p>
+        </div>
+
         <div className="debug-section">
-          <h2>Debug Tools</h2>
+          <h2>Developer Tools</h2>
           <div className="debug-content">
             <p className="debug-description">
               If you are using the live deployment version of this app, you will encounter an error if the total number of custom voices generated (by all users) reaches the limit of 10 allotted by the lowest paid tier of ElevenLabs. By clicking this button, you can delete all custom voices to make room for more. Please note that this will delete custom voices currently being used by other users of this app.

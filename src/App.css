@@ -30,6 +30,26 @@
   margin-top: 20px;
 }
 
+.github-button {
+  display: inline-block;
+  background: #f6f8fa;
+  color: #24292f;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 5px 0;
+  border: 1px solid #d0d7de;
+}
+
+.github-button:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .App-main {
   text-align: left;
 }
@@ -54,6 +74,8 @@
   margin-top: 0;
   color: #333;
   margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .voice-selection {
@@ -426,6 +448,7 @@
   border-radius: 8px;
   border: 1px solid #b3d9ff;
   margin-top: 30px;
+  margin-bottom: 25px;
 }
 
 .info-section h3 {

@@ -273,6 +273,62 @@ class ElevenLabsService {
     console.log('Created audio URL:', url);
     return url;
   }
+
+  async listVoices(): Promise<any> {
+    if (!this.apiKey) {
+      throw new Error('ElevenLabs API key not provided. Please enter your API key.');
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}/voices`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': this.apiKey
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error listing voices:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to list voices. Please check your API key and try again.');
+    }
+  }
+
+  async deleteVoice(voiceId: string): Promise<void> {
+    if (!this.apiKey) {
+      throw new Error('ElevenLabs API key not provided. Please enter your API key.');
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}/voices/${voiceId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': this.apiKey
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting voice ${voiceId}:`, error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Failed to delete voice ${voiceId}. Please check your API key and try again.`);
+    }
+  }
 }
 
 export const elevenLabsService = new ElevenLabsService(); 

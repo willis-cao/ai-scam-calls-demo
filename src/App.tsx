@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const [selectedVoiceType, setSelectedVoiceType] = useState<'eric' | 'jessica' | 'custom'>('eric');
   const [generatedScript, setGeneratedScript] = useState<string>('');
   const [customVoiceDescription, setCustomVoiceDescription] = useState<string>('');
+  const [isDeletingVoices, setIsDeletingVoices] = useState(false);
 
   const demoAudioRef = useRef<HTMLAudioElement>(null);
   const scamCallAudioRef = useRef<HTMLAudioElement>(null);
@@ -280,6 +281,58 @@ const App: React.FC = () => {
   // Helper function to strip ElevenLabs pause syntax from script display
   const stripPauseSyntax = (script: string): string => {
     return script.replace(/<break time="[^"]*" \/>/g, '');
+  };
+
+  const deleteAllCustomVoices = async () => {
+    if (!apiKey) {
+      setError('ElevenLabs API key not found. Please add REACT_APP_ELEVENLABS_API_KEY to your .env.local file.');
+      return;
+    }
+
+    setIsDeletingVoices(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Initialize the ElevenLabs service
+      elevenLabsService.initialize(apiKey);
+      
+      // List all voices
+      const voicesResponse = await elevenLabsService.listVoices();
+      console.log('Voices response:', voicesResponse);
+      
+      if (!voicesResponse.voices || !Array.isArray(voicesResponse.voices)) {
+        throw new Error('Invalid response from voices API');
+      }
+
+      // Extract voice IDs from the response
+      const voiceIds = voicesResponse.voices.map((voice: any) => voice.voice_id);
+      console.log('Found voice IDs:', voiceIds);
+
+      if (voiceIds.length === 0) {
+        setSuccess('No custom voices found to delete.');
+        return;
+      }
+
+      // Delete each voice
+      let deletedCount = 0;
+      for (const voiceId of voiceIds) {
+        try {
+          await elevenLabsService.deleteVoice(voiceId);
+          deletedCount++;
+          console.log(`Deleted voice: ${voiceId}`);
+        } catch (error) {
+          console.error(`Failed to delete voice ${voiceId}:`, error);
+          // Continue with other voices even if one fails
+        }
+      }
+
+      setSuccess(`Successfully deleted ${deletedCount} custom voices.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete custom voices. Please check your API key.');
+    } finally {
+      setIsDeletingVoices(false);
+    }
   };
 
   return (
@@ -548,6 +601,22 @@ const App: React.FC = () => {
             <strong>Disclaimer:</strong> This tool is for educational purposes only. 
             AI-generated scam calls are a real threat that can be used to 
             impersonate loved ones or professionals and extract sensitive information.
+          </div>
+        </div>
+
+        <div className="debug-section">
+          <h2>Debug Tools</h2>
+          <div className="debug-content">
+            <p className="debug-description">
+              If you are using the live deployment version of this app, you will encounter an error if the total number of custom voices generated (by all users) reaches the limit of 10 allotted by the lowest paid tier of ElevenLabs. By clicking this button, you can delete all custom voices to make room for more. Please note that this will delete custom voices currently being used by other users of this app.
+            </p>
+            <button 
+              onClick={deleteAllCustomVoices}
+              disabled={isDeletingVoices || !apiKey}
+              className="debug-button"
+            >
+              {isDeletingVoices ? 'Deleting Voices...' : 'Delete all custom voices'}
+            </button>
           </div>
         </div>
       </main>

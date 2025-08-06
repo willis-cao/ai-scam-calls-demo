@@ -331,6 +331,53 @@
   margin-top: 10px;
 }
 
+.debug-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #e9ecef;
+}
+
+.debug-section h2 {
+  margin-top: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.debug-content {
+  margin-top: 10px;
+}
+
+.debug-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.debug-button {
+  background: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.debug-button:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.debug-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .voice-description-box {
   background: #fff;
   border: 1px solid #ddd;
